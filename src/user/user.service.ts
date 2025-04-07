@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { User } from '@prisma/client';
-import { DatabaseService } from 'src/database/database.service';
 import { hashValue } from 'src/shared/utilities/hashing/hashing.utility';
 import { tryCatch } from 'src/shared/utilities/try-catch/try-catch.utility';
 
@@ -8,13 +9,15 @@ import { tryCatch } from 'src/shared/utilities/try-catch/try-catch.utility';
 export class UserService {
   private readonly logger = new Logger(UserService.name);
 
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async checkIfUserExists(email: string) {
     this.logger.debug('UserService::checkIfUserExists', { email });
 
     const [userCountSuccess, data] = await tryCatch(() =>
-      this.databaseService.user.count({
+      this.txHost.tx.user.count({
         where: { email },
       }),
     );
@@ -31,7 +34,7 @@ export class UserService {
     this.logger.debug('UserService::findUserByEmail', { email });
 
     const [userFindSuccess, data] = await tryCatch(() =>
-      this.databaseService.user.findUnique({
+      this.txHost.tx.user.findUnique({
         where: { email },
       }),
     );
@@ -48,7 +51,7 @@ export class UserService {
     this.logger.debug('UserService::findUserById', { id });
 
     const [userFindSuccess, data] = await tryCatch(() =>
-      this.databaseService.user.findUnique({
+      this.txHost.tx.user.findUnique({
         where: { id },
         include: {
           organization: {
@@ -78,7 +81,7 @@ export class UserService {
     this.logger.debug('UserService::createUser', { user });
 
     const [userCreateSuccess, data] = await tryCatch(async () =>
-      this.databaseService.user.create({
+      this.txHost.tx.user.create({
         data: {
           email: user.email,
           password: await hashValue(user.password),
@@ -100,7 +103,7 @@ export class UserService {
     this.logger.debug('UserService::setUserName', { user });
 
     const [userUpdateSuccess, userUpdateError] = await tryCatch(() =>
-      this.databaseService.user.update({
+      this.txHost.tx.user.update({
         where: { id: user.id },
         data: { firstName: user.firstName, lastName: user.lastName },
       }),
@@ -118,7 +121,7 @@ export class UserService {
     this.logger.debug('UserService::setUserOrganization', { user });
 
     const [userUpdateSuccess, userUpdateError] = await tryCatch(() =>
-      this.databaseService.user.update({
+      this.txHost.tx.user.update({
         where: { id: user.id },
         data: { organizationId: user.organizationId },
       }),
@@ -130,5 +133,27 @@ export class UserService {
     }
 
     return userUpdateSuccess;
+  }
+
+  async getUsersByOrganizationId(organizationId: string) {
+    this.logger.debug('UserService::getUsersByOrganizationId', {
+      organizationId,
+    });
+
+    const [usersFindSuccess, data] = await tryCatch(() =>
+      this.txHost.tx.user.findMany({ where: { organizationId } }),
+    );
+
+    if (!usersFindSuccess) {
+      this.logger.error(data);
+      return null;
+    }
+
+    return data.map((user) => ({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    }));
   }
 }

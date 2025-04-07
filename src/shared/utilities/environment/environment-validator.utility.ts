@@ -45,6 +45,12 @@ export class EnvironmentVariables {
 
   @IsString()
   GOOGLE_FRONTEND_REDIRECT_URI: string;
+
+  @IsString()
+  REDIS_HOST: string;
+
+  @IsNumber()
+  REDIS_PORT: number;
 }
 
 export function validate(config: Record<string, unknown>) {

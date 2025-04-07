@@ -50,6 +50,8 @@ export default tseslint.config(
     rules: {
       camelcase: ['error'],
 
+      'unicorn/import-style': ['off'],
+      'unicorn/prefer-module': ['off'],
       'unicorn/no-null': ['off'],
       'unicorn/filename-case': [
         'error',

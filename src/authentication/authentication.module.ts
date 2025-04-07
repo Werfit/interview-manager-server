@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { UserModule } from 'src/user/user.module';
 
 import { AuthenticationController } from './authentication.controller';
 import { AuthenticationService } from './authentication.service';
@@ -10,7 +9,7 @@ import { GoogleAuthStrategy } from './strategies/google-auth.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 
 @Module({
-  imports: [UserModule, JwtModule.register({})],
+  imports: [JwtModule.register({})],
   controllers: [AuthenticationController],
   providers: [
     AuthenticationService,

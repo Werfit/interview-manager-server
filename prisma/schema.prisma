@@ -30,6 +30,8 @@ model User {
   sessions Session[]
 
   ownedOrganization Organization? @relation(name: "organization_owner_id")
+
+  interviews Interview[]
 }
 
 model Organization {
@@ -43,6 +45,10 @@ model Organization {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  interview          Interview[]
+  interviewStatuses  InterviewStatus[]
+  interviewPositions InterviewPosition[]
 }
 
 model Session {
@@ -53,4 +59,111 @@ model Session {
   expiresAt    DateTime
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model Interview {
+  id String @id @default(uuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  description String
+  date        DateTime
+
+  interviewerId String
+  interviewer   User   @relation(fields: [interviewerId], references: [id])
+
+  statusId String
+  status   InterviewStatus @relation(fields: [statusId], references: [id])
+
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+
+  positionId String
+  position   InterviewPosition @relation(fields: [positionId], references: [id])
+
+  recordings Attachment[]
+}
+
+model InterviewStatus {
+  id          String @id @default(uuid())
+  name        String
+  description String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  interviews Interview[]
+
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  @@unique([organizationId, name])
+}
+
+model InterviewPosition {
+  id String @id @default(uuid())
+
+  name String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  interviews Interview[]
+
+  @@unique([organizationId, name])
+}
+
+model Candidate {
+  id String @id @default(uuid())
+
+  name  String
+  email String      @unique
+  phone String?
+  cv    Attachment?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  interviews Interview[]
+}
+
+enum AttachmentType {
+  PDF
+  VIDEO
+  IMAGE
+}
+
+enum AttachmentStatus {
+  PENDING
+  COMPLETED
+}
+
+model Attachment {
+  id String @id @default(uuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  type AttachmentType
+  url  String
+
+  status AttachmentStatus @default(PENDING)
+
+  candidateId String?    @unique
+  candidate   Candidate? @relation(fields: [candidateId], references: [id])
+
+  interviewId String?
+  interview   Interview? @relation(fields: [interviewId], references: [id])
+
+  thumbnail   Attachment? @relation(fields: [thumbnailId], references: [id], name: "attachment_thumbnail")
+  thumbnailId String?     @unique
+
+  thumbnailFor Attachment? @relation("attachment_thumbnail")
 }

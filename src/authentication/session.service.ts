@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { Session, User } from '@prisma/client';
-import { DatabaseService } from 'src/database/database.service';
 import {
   compareHashedValue,
   hashValue,
@@ -11,11 +12,13 @@ import { tryCatch } from 'src/shared/utilities/try-catch/try-catch.utility';
 export class SessionService {
   private readonly logger = new Logger(SessionService.name);
 
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
+  ) {}
 
   async cleanUpExpiredSessions(userId: User['id']) {
     const [sessionDeleteSuccess, data] = await tryCatch(() =>
-      this.databaseService.session.deleteMany({
+      this.txHost.tx.session.deleteMany({
         where: {
           userId,
           expiresAt: {
@@ -38,7 +41,7 @@ export class SessionService {
   ) {
     this.logger.debug('SessionService::createSession', { data });
     const [sessionCreateSuccess, creationData] = await tryCatch(async () =>
-      this.databaseService.session.create({
+      this.txHost.tx.session.create({
         data: {
           userId: data.userId,
           refreshToken: await hashValue(data.refreshToken),
@@ -58,7 +61,7 @@ export class SessionService {
   async deleteSessionByUserId(session: Pick<Session, 'id'>) {
     this.logger.debug('SessionService::deleteSessionByUserId', { session });
     const [sessionDeleteSuccess, data] = await tryCatch(() =>
-      this.databaseService.session.deleteMany({
+      this.txHost.tx.session.deleteMany({
         where: session,
       }),
     );
@@ -74,7 +77,7 @@ export class SessionService {
   async deleteSession(refreshToken: string) {
     this.logger.debug('SessionService::deleteSession', { refreshToken });
     const [sessionDeleteSuccess, data] = await tryCatch(() =>
-      this.databaseService.session.delete({
+      this.txHost.tx.session.delete({
         where: {
           refreshToken,
         },
@@ -94,7 +97,7 @@ export class SessionService {
   ) {
     this.logger.debug('SessionService::findSessionByRefreshToken', { data });
     const [sessionFindSuccess, sessions] = await tryCatch(() =>
-      this.databaseService.session.findMany({
+      this.txHost.tx.session.findMany({
         where: {
           userId: data.userId,
         },

@@ -1,9 +1,11 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { AccessTokenGuard } from 'src/authentication/guards/access-token.guard';
 
 import { VerifyOrganizationByNameResponseDto } from './dto/verify-organization-by-name-response.dto';
 import { OrganizationService } from './organization.service';
 
 @Controller('organization')
+@UseGuards(AccessTokenGuard)
 export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) {}
 
