@@ -4,9 +4,9 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import * as ffmpeg from 'fluent-ffmpeg';
+import { fileManager } from 'src/shared/helpers/file-manager.helper';
 
 import { QueueNames } from '../file-uploader.constants';
-import { getUploadPath } from '../file-uploader.utility';
 import { AttachmentService } from '../services/attachment.service';
 
 export type ThumbnailJobData = {
@@ -25,7 +25,10 @@ export class ThumbnailProcessor extends WorkerHost {
   async process(job: Job<ThumbnailJobData>) {
     const { videoPath, videoId } = job.data;
     const filename = basename(videoPath, extname(videoPath));
-    const outputPath = join(getUploadPath(), 'thumbnails', `${filename}.jpg`);
+    const outputPath = join(
+      fileManager.thumbnailPath,
+      fileManager.getThumbnailFilename(filename),
+    );
 
     return new Promise<string>((resolve, reject) => {
       ffmpeg(videoPath)
@@ -44,7 +47,7 @@ export class ThumbnailProcessor extends WorkerHost {
         .screenshots({
           timestamps: ['2'],
           filename: `${filename}.jpg`,
-          folder: join(getUploadPath(), 'thumbnails'),
+          folder: fileManager.thumbnailPath,
         });
     });
   }

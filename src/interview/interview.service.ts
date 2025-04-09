@@ -5,7 +5,8 @@ import {
 } from '@nestjs/common';
 import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { Interview, Organization } from '@prisma/client';
+import { AttachmentStatus, Interview, Organization } from '@prisma/client';
+import { AttachmentService } from 'src/file-uploader/services/attachment.service';
 
 import { CandidateService } from './candidate/candidate.service';
 import { CreateInterviewRequestDto } from './dto/create-interview-request.dto';
@@ -16,12 +17,14 @@ export class InterviewService {
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
     private readonly candidateService: CandidateService,
     private readonly interviewStatusService: InterviewStatusService,
+    private readonly attachmentService: AttachmentService,
   ) {}
 
   @Transactional()
   async createInterview(
     data: CreateInterviewRequestDto & {
       organizationId: Organization['id'];
+      cvPath?: string;
     },
   ) {
     const status = await this.interviewStatusService.findInterviewStatusById({
@@ -40,6 +43,14 @@ export class InterviewService {
 
     if (!candidate) {
       throw new InternalServerErrorException('Error creating candidate');
+    }
+
+    if (data.cvPath) {
+      await this.attachmentService.createPDF({
+        url: data.cvPath,
+        status: AttachmentStatus.COMPLETED,
+        candidateId: candidate.id,
+      });
     }
 
     const interview = await this.txHost.tx.interview.create({
@@ -69,7 +80,15 @@ export class InterviewService {
             email: true,
           },
         },
-        candidate: true,
+        candidate: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            cv: true,
+          },
+        },
         status: true,
         position: true,
       },
@@ -83,15 +102,30 @@ export class InterviewService {
       },
       include: {
         interviewer: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
+          omit: {
+            password: true,
+            createdAt: true,
+            updatedAt: true,
           },
         },
-        candidate: true,
-        status: true,
+        candidate: {
+          omit: {
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+        status: {
+          omit: {
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+        position: {
+          omit: {
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
       },
     });
   }

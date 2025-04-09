@@ -1,9 +1,9 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { fileManager } from 'src/shared/helpers/file-manager.helper';
 
 import { QueueNames } from './file-uploader.constants';
-import { getUploadPath } from './file-uploader.utility';
 import { ThumbnailProcessor } from './processors/thumbnail.processor';
 import { VideoProcessor } from './processors/video.processor';
 import { AttachmentService } from './services/attachment.service';
@@ -16,11 +16,11 @@ import { FileManagerService } from './services/file-manager.service';
     AttachmentService,
     VideoProcessor,
   ],
-  exports: [FileManagerService],
+  exports: [FileManagerService, AttachmentService],
   imports: [
     // This here is for development purposes only. Must be replaced with S3
     ServeStaticModule.forRoot({
-      rootPath: getUploadPath(),
+      rootPath: fileManager.uploadPath,
       serveRoot: '/uploads',
       serveStaticOptions: {
         index: false,

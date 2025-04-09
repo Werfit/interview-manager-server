@@ -1,7 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { Attachment, AttachmentStatus, AttachmentType } from '@prisma/client';
+import {
+  Attachment,
+  AttachmentStatus,
+  AttachmentType,
+  Candidate,
+} from '@prisma/client';
 
 @Injectable()
 export class AttachmentService {
@@ -9,6 +14,34 @@ export class AttachmentService {
   constructor(
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
   ) {}
+
+  async createPDF(data: Pick<Attachment, 'url' | 'status' | 'candidateId'>) {
+    return this.txHost.tx.attachment.create({
+      data: {
+        type: AttachmentType.PDF,
+        url: data.url,
+        status: data.status,
+        candidateId: data.candidateId,
+      },
+    });
+  }
+
+  async findCandidateCV(data: Pick<Candidate, 'id'>) {
+    return this.txHost.tx.attachment.findFirst({
+      where: {
+        candidateId: data.id,
+        type: AttachmentType.PDF,
+      },
+    });
+  }
+
+  async deleteAttachment(id: string) {
+    return this.txHost.tx.attachment.delete({
+      where: {
+        id,
+      },
+    });
+  }
 
   async createThumbnail(data: {
     videoId: Attachment['id'];

@@ -15,8 +15,8 @@ import {
   OrganizationUser,
   UserOrganizationGuard,
 } from 'src/authentication/guards/user-organization.guard';
-import { FileChunksInterceptor } from 'src/file-uploader/interceptors/file-chunks.interceptor';
 import { User } from 'src/shared/decorators/user.decorator';
+import { FileChunksInterceptor } from 'src/shared/interceptors/file-chunks.interceptor';
 
 import { FinalizeRecordingDto } from './dto/finalize-recording.dto';
 import { GetRecordingsQueryDto } from './dto/get-recordings-query.dto';
@@ -28,7 +28,7 @@ export class RecordingController {
   constructor(private readonly recordingService: RecordingService) {}
 
   @Post('upload-chunk')
-  @UseInterceptors(FileChunksInterceptor('chunk', '.webm'))
+  @UseInterceptors(FileChunksInterceptor('chunk'))
   uploadChunk(@UploadedFile() file: Express.Multer.File) {
     return { message: 'Chunk uploaded successfully', file: file.filename };
   }

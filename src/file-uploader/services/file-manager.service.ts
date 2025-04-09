@@ -1,4 +1,3 @@
-import { mkdirSync } from 'node:fs';
 import {
   appendFile,
   readdir,
@@ -12,10 +11,10 @@ import { basename, extname, join } from 'node:path';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bullmq';
+import { fileManager } from 'src/shared/helpers/file-manager.helper';
 import { tryCatch } from 'src/shared/utilities/try-catch/try-catch.utility';
 
 import { QueueNames } from '../file-uploader.constants';
-import { getUploadPath } from '../file-uploader.utility';
 import { ThumbnailJobData } from '../processors/thumbnail.processor';
 import { VideoJobData } from '../processors/video.processor';
 
@@ -32,33 +31,9 @@ export class FileManagerService {
     private readonly videoQueue: Queue<VideoJobData>,
   ) {}
 
-  createChunkDirectory({ sessionId }: { sessionId: string }) {
-    this.logger.log('FileManagerService::createChunkDirectory', sessionId);
-    const uploadPath = join(getUploadPath(), sessionId);
-    mkdirSync(uploadPath, { recursive: true });
-    return uploadPath;
-  }
-
-  generateChunkFilename({
-    chunkIndex,
-    originalname,
-    defaultExtension,
-  }: {
-    chunkIndex: string;
-    originalname: string;
-    defaultExtension?: string;
-  }) {
-    this.logger.log('FileManagerService::generateChunkFilename', {
-      chunkIndex,
-      originalname,
-      defaultExtension,
-    });
-    return `chunk-${chunkIndex}${extname(originalname) || defaultExtension}`;
-  }
-
   async getSessionChunks(sessionId: string) {
     this.logger.log('FileManagerService::getSessionChunks', sessionId);
-    const uploadPath = join(getUploadPath(), sessionId);
+    const uploadPath = fileManager.getChunkFolderPath(sessionId);
 
     const [success, data] = await tryCatch(async () => {
       const chunks = await readdir(uploadPath);
@@ -88,11 +63,11 @@ export class FileManagerService {
     this.logger.log('FileManagerService::mergeChunks', {
       sessionId,
     });
-    const mergedPath = join(getUploadPath(), `${sessionId}.webm`);
+    const mergedPath = join(fileManager.uploadPath, `${sessionId}.webm`);
     await writeFile(mergedPath, Buffer.alloc(0));
 
     for (const chunk of chunks) {
-      const chunkPath = join(getUploadPath(), sessionId, chunk);
+      const chunkPath = join(fileManager.getChunkFolderPath(sessionId), chunk);
       const buffer = await readFile(chunkPath);
       await appendFile(mergedPath, buffer);
     }
@@ -111,7 +86,7 @@ export class FileManagerService {
       sessionId,
       videoPathname,
     });
-    const uploadPath = join(getUploadPath(), sessionId);
+    const uploadPath = fileManager.getChunkFolderPath(sessionId);
     await rm(uploadPath, { recursive: true, force: true });
     await rm(videoPathname, { force: true });
   }
@@ -150,7 +125,7 @@ export class FileManagerService {
     });
   }
 
-  async deleteFile(filepath: string) {
+  async deleteRecording(filepath: string) {
     this.logger.log('FileManagerService::deleteFile', {
       filepath,
     });
@@ -158,13 +133,26 @@ export class FileManagerService {
     const sessionId = basename(filepath, extname(filepath));
 
     const thumbnailPath = join(
-      getUploadPath(),
-      'thumbnails',
-      `${sessionId}.jpg`,
+      fileManager.thumbnailPath,
+      fileManager.getThumbnailFilename(sessionId),
     );
 
-    await rmdir(join(getUploadPath(), sessionId), { recursive: true });
+    const exists = await fileManager.fileExists(
+      fileManager.getChunkFolderPath(sessionId),
+    );
+    if (exists) {
+      await rmdir(fileManager.getChunkFolderPath(sessionId), {
+        recursive: true,
+      });
+    }
     await rm(filepath, { force: true });
     await rm(thumbnailPath, { force: true });
+  }
+
+  async deletePDF(filepath: string) {
+    this.logger.log('FileManagerService::deletePDF', {
+      filepath,
+    });
+    await rm(filepath, { force: true });
   }
 }

@@ -6,16 +6,21 @@ import {
   NotFoundException,
   Param,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AccessTokenGuard } from 'src/authentication/guards/access-token.guard';
 import {
   OrganizationUser,
   UserOrganizationGuard,
 } from 'src/authentication/guards/user-organization.guard';
+import { FileManagerService } from 'src/file-uploader/services/file-manager.service';
 import { User } from 'src/shared/decorators/user.decorator';
 import { UserService } from 'src/user/user.service';
 
+import { CVInterceptor } from './candidate/interceptors/cv.interceptor';
+import { CVValidationPipe } from './candidate/validation/cv-validation.pipe';
 import { CreateInterviewRequestDto } from './dto/create-interview-request.dto';
 import { InterviewService } from './interview.service';
 
@@ -25,6 +30,7 @@ export class InterviewController {
   constructor(
     private readonly userService: UserService,
     private readonly interviewService: InterviewService,
+    private readonly fileManagerService: FileManagerService,
   ) {}
 
   @Get('list')
@@ -41,9 +47,16 @@ export class InterviewController {
   }
 
   @Post()
+  @UseInterceptors(CVInterceptor('cv'))
   async createInterview(
     @User() user: OrganizationUser,
     @Body() createInterviewRequestDto: CreateInterviewRequestDto,
+    @UploadedFile(
+      new CVValidationPipe({
+        fileIsRequired: false,
+      }),
+    )
+    cv?: Express.Multer.File,
   ) {
     const interviewer = await this.userService.findUserById(
       createInterviewRequestDto.interviewerId,
@@ -51,6 +64,14 @@ export class InterviewController {
 
     if (!interviewer) {
       throw new NotFoundException('Interviewer not found');
+    }
+
+    if (cv) {
+      return this.interviewService.createInterview({
+        ...createInterviewRequestDto,
+        organizationId: user.organizationId,
+        cvPath: cv.path,
+      });
     }
 
     return this.interviewService.createInterview({

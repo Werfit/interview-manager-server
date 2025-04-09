@@ -4,9 +4,9 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import * as ffmpeg from 'fluent-ffmpeg';
+import { fileManager } from 'src/shared/helpers/file-manager.helper';
 
 import { QueueNames } from '../file-uploader.constants';
-import { getUploadPath } from '../file-uploader.utility';
 import { AttachmentService } from '../services/attachment.service';
 import { FileManagerService } from '../services/file-manager.service';
 
@@ -30,7 +30,11 @@ export class VideoProcessor extends WorkerHost {
     this.logger.log('VideoProcessor::process', job.data);
     const { videoPath, videoId } = job.data;
     const filename = basename(videoPath, extname(videoPath));
-    const outputPath = join(getUploadPath(), `${filename}.mp4`);
+
+    const outputPath = join(
+      fileManager.uploadPath,
+      fileManager.getRecordingFilename(filename),
+    );
 
     return new Promise<string>((resolve, reject) => {
       ffmpeg(videoPath)

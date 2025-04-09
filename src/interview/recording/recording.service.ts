@@ -64,7 +64,7 @@ export class RecordingService {
       throw new NotFoundException('Recording not found');
     }
 
-    await this.fileUploaderService.deleteFile(recording.url);
+    await this.fileUploaderService.deleteRecording(recording.url);
     return this.txHost.tx.attachment.delete({
       where: { id },
     });

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { FileUploaderModule } from 'src/file-uploader/file-uploader.module';
 
 import { CandidateModule } from './candidate/candidate.module';
 import { InterviewController } from './interview.controller';
@@ -13,6 +14,7 @@ import { RecordingModule } from './recording/recording.module';
     CandidateModule,
     PositionModule,
     RecordingModule,
+    FileUploaderModule,
   ],
   controllers: [InterviewController],
   providers: [InterviewService],

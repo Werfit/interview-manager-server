@@ -169,6 +169,7 @@ export class AuthenticationController {
     return {
       httpOnly: true,
       secure: isProduction,
+      // Chrome extension needs access to the cookies
       sameSite: 'lax',
       maxAge,
     };
