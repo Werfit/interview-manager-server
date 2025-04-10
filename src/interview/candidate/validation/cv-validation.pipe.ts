@@ -12,6 +12,7 @@ export class CVValidationPipe extends ParseFilePipe {
         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }),
         new FileTypeValidator({ fileType: 'application/pdf' }),
       ],
+      ...options,
     });
   }
 }
