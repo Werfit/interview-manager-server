@@ -33,6 +33,39 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: interview-manager-rabbitmq
+    ports:
+      - '${RABBIT_MQ_PORT}:${RABBIT_MQ_PORT}' # AMQP protocol port
+      - '15672:15672' # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_MQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_MQ_PASSWORD:-guest}
+    networks:
+      - interview-manager-network
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'check_port_connectivity']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: interview-manager-chroma
+    ports:
+      - '8001:8000'
+    environment:
+      - CHROMA_SERVER_HOST=0.0.0.0
+      - CHROMA_SERVER_GRPC_PORT=50051
+    networks:
+      - interview-manager-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/api/v1/heartbeat']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
 

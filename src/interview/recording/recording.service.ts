@@ -1,85 +1,65 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { Attachment, AttachmentType, Interview } from '@prisma/client';
-import { FileManagerService } from 'src/file-uploader/services/file-manager.service';
+import { Attachment, Interview } from '@prisma/client';
+import { ProcessVideoCommand } from 'src/media/video/commands/process-video.command';
+import { VideoService } from 'src/media/video/video.service';
 import { tryCatch } from 'src/shared/utilities/try-catch/try-catch.utility';
 
+import { CreateRecordingDto } from './dto/create-recording.dto';
 import { FinalizeRecordingDto } from './dto/finalize-recording.dto';
 
 @Injectable()
 export class RecordingService {
   constructor(
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
-    private readonly fileUploaderService: FileManagerService,
+
+    private readonly videoService: VideoService,
+    private readonly commandBus: CommandBus,
   ) {}
 
   async finalizeUpload(body: FinalizeRecordingDto) {
-    const [success, data] = await tryCatch(async () => {
-      const chunks = await this.fileUploaderService.getSessionChunks(
-        body.sessionId,
-      );
-
-      const mergedPath = await this.fileUploaderService.mergeChunks({
+    const [success, response] = await tryCatch(async () =>
+      this.videoService.combine({
         sessionId: body.sessionId,
-        chunks,
-      });
-
-      return mergedPath;
-    });
+      }),
+    );
 
     if (!success) {
-      throw new InternalServerErrorException(
-        'Failed to finalize the video upload',
-      );
+      throw response;
     }
 
+    const recordingUrl = response;
+
     const recording = await this.createRecording({
-      url: data,
+      url: recordingUrl,
       interviewId: body.interviewId,
     });
 
-    await Promise.all([
-      this.fileUploaderService.startThumbnailGeneration({
-        filepath: data,
-        videoId: recording.id,
-      }),
-      this.fileUploaderService.startVideoConversion({
-        filepath: data,
-        videoId: recording.id,
-      }),
-    ]);
+    if (!recording) {
+      throw new InternalServerErrorException('Failed to create recording');
+    }
+
+    await this.commandBus.execute(
+      new ProcessVideoCommand(
+        {
+          videoId: recording.id,
+          interviewId: body.interviewId,
+        },
+        recordingUrl,
+      ),
+    );
   }
 
   async deleteRecording(id: string) {
-    const recording = await this.txHost.tx.attachment.findUnique({
-      where: { id },
-    });
-
-    if (!recording) {
-      throw new NotFoundException('Recording not found');
-    }
-
-    await this.fileUploaderService.deleteRecording(recording.url);
-    return this.txHost.tx.attachment.delete({
-      where: { id },
+    return this.videoService.delete({
+      id,
     });
   }
 
-  async createRecording(
-    createRecordingDto: Pick<Attachment, 'url' | 'interviewId'>,
-  ) {
-    return this.txHost.tx.attachment.create({
-      data: {
-        url: createRecordingDto.url,
-        interviewId: createRecordingDto.interviewId,
-        type: AttachmentType.VIDEO,
-      },
-    });
+  async createRecording(data: CreateRecordingDto) {
+    return this.videoService.create(data);
   }
 
   async getRecordings(
@@ -105,5 +85,11 @@ export class RecordingService {
     });
 
     return result;
+  }
+
+  async getRecording(data: Pick<Attachment, 'id'>) {
+    return this.videoService.find({
+      id: data.id,
+    });
   }
 }

@@ -30,6 +30,14 @@ export class InterviewStatusService {
   }: Pick<InterviewStatus, 'organizationId'>) {
     return this.txHost.tx.interviewStatus.findMany({
       where: { organizationId },
+      include: {
+        nextStatus: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
   }
 

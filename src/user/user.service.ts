@@ -13,13 +13,28 @@ export class UserService {
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
   ) {}
 
-  async checkIfUserExists(email: string) {
+  async checkIfUserExistsByEmail(email: string) {
     this.logger.debug('UserService::checkIfUserExists', { email });
 
     const [userCountSuccess, data] = await tryCatch(() =>
       this.txHost.tx.user.count({
         where: { email },
       }),
+    );
+
+    if (!userCountSuccess) {
+      this.logger.error(data);
+      return false;
+    }
+
+    return data > 0;
+  }
+
+  async checkIfUserExistsById(id: string) {
+    this.logger.debug('UserService::checkIfUserExistsById', { id });
+
+    const [userCountSuccess, data] = await tryCatch(() =>
+      this.txHost.tx.user.count({ where: { id } }),
     );
 
     if (!userCountSuccess) {

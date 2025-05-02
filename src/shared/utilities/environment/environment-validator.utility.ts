@@ -7,6 +7,12 @@ export class EnvironmentVariables {
 
   @IsString()
   CORS_ORIGIN: string;
+
+  @IsNumber()
+  SOCKET_PORT: number;
+
+  @IsString()
+  LLM_ORIGIN: string;
   @IsString()
   DATABASE_URL: string;
 
@@ -47,10 +53,22 @@ export class EnvironmentVariables {
   GOOGLE_FRONTEND_REDIRECT_URI: string;
 
   @IsString()
-  REDIS_HOST: string;
+  REDIS_URL: string;
+
+  @IsString()
+  RABBIT_MQ_HOST: string;
 
   @IsNumber()
-  REDIS_PORT: number;
+  RABBIT_MQ_PORT: number;
+
+  @IsString()
+  RABBIT_MQ_USER: string;
+
+  @IsString()
+  RABBIT_MQ_PASSWORD: string;
+
+  @IsString()
+  RABBIT_MQ_QUEUE: string;
 }
 
 export function validate(config: Record<string, unknown>) {

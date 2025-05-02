@@ -1,14 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import {
-  Attachment,
-  AttachmentStatus,
-  Candidate,
-  Prisma,
-} from '@prisma/client';
-import { AttachmentService } from 'src/file-uploader/services/attachment.service';
-import { FileManagerService } from 'src/file-uploader/services/file-manager.service';
+import { Attachment, Candidate, Prisma } from '@prisma/client';
+import { DocumentService } from 'src/media/document/document.service';
 import { tryCatch } from 'src/shared/utilities/try-catch/try-catch.utility';
 
 @Injectable()
@@ -17,8 +11,7 @@ export class CandidateService {
 
   constructor(
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
-    private readonly attachmentService: AttachmentService,
-    private readonly fileManagerService: FileManagerService,
+    private readonly documentService: DocumentService,
   ) {}
 
   async checkIfExists(email: string) {
@@ -62,37 +55,24 @@ export class CandidateService {
   async uploadCandidateCV(
     data: Pick<Candidate, 'id'> & Pick<Attachment, 'url'>,
   ) {
-    const candidateCv = await this.attachmentService.findCandidateCV(data);
-
-    if (candidateCv) {
-      await this.fileManagerService.deletePDF(candidateCv.url);
-    }
+    await this.documentService.delete(data.id);
 
     const [candidateCvCreateSuccess, response] = await tryCatch(() =>
-      this.attachmentService.createPDF({
-        candidateId: data.id,
-        status: AttachmentStatus.COMPLETED,
+      this.documentService.create({
         url: data.url,
+        candidateId: data.id,
       }),
     );
 
     if (!candidateCvCreateSuccess) {
-      this.logger.error(candidateCv);
+      this.logger.error(response);
       return null;
     }
 
     return response;
   }
 
-  @Transactional()
   async deleteCandidateCV(id: string) {
-    const candidateCv = await this.attachmentService.findCandidateCV({ id });
-
-    if (!candidateCv) {
-      return null;
-    }
-
-    await this.fileManagerService.deletePDF(candidateCv.url);
-    await this.attachmentService.deleteAttachment(candidateCv.id);
+    return this.documentService.delete(id);
   }
 }

@@ -31,7 +31,8 @@ model User {
 
   ownedOrganization Organization? @relation(name: "organization_owner_id")
 
-  interviews Interview[]
+  interviews   Interview[]
+  participants Participant[]
 }
 
 model Organization {
@@ -85,7 +86,10 @@ model Interview {
   positionId String
   position   InterviewPosition @relation(fields: [positionId], references: [id])
 
-  recordings Attachment[]
+  recordings     Attachment[]
+  transcriptions Transcription[]
+
+  chat Chat?
 }
 
 model InterviewStatus {
@@ -101,7 +105,29 @@ model InterviewStatus {
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id])
 
+  nextStatusId     String?
+  nextStatus       InterviewStatus?  @relation("status_flow", fields: [nextStatusId], references: [id])
+  previousStatuses InterviewStatus[] @relation("status_flow")
+
+  fromStatusUpdates InterviewStatusUpdate[] @relation("status_update_from")
+  toStatusUpdates   InterviewStatusUpdate[] @relation("status_update_to")
+
   @@unique([organizationId, name])
+}
+
+model InterviewStatusUpdate {
+  id String @id @default(uuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fromStatusId String
+  fromStatus   InterviewStatus @relation(fields: [fromStatusId], references: [id], name: "status_update_from")
+
+  toStatusId String
+  toStatus   InterviewStatus @relation(fields: [toStatusId], references: [id], name: "status_update_to")
+
+  @@unique([fromStatusId, toStatusId])
 }
 
 model InterviewPosition {
@@ -166,4 +192,77 @@ model Attachment {
   thumbnailId String?     @unique
 
   thumbnailFor Attachment? @relation("attachment_thumbnail")
+
+  transcriptions Transcription[]
+}
+
+enum TranscriptionStatus {
+  PENDING
+  COMPLETED
+}
+
+model Transcription {
+  id      String @id @default(uuid())
+  content String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  status TranscriptionStatus @default(PENDING)
+
+  interviewId String
+  interview   Interview @relation(fields: [interviewId], references: [id])
+
+  recordingId String
+  recording   Attachment @relation(fields: [recordingId], references: [id])
+}
+
+model Chat {
+  id String @id @default(uuid())
+
+  interviewId String    @unique
+  interview   Interview @relation(fields: [interviewId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages     Message[]
+  participants Participant[]
+}
+
+enum ParticipantType {
+  USER
+  AGENT // AI agent
+}
+
+model Participant {
+  id String @id @default(uuid())
+
+  type ParticipantType
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id])
+
+  messages Message[]
+}
+
+model Message {
+  id String @id @default(uuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id])
+
+  content String
+
+  senderId String
+  sender   Participant @relation(fields: [senderId], references: [id])
 }

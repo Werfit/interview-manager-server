@@ -7,6 +7,7 @@ import { SessionService } from './session.service';
 import { AccessTokenStrategy } from './strategies/access-token.strategy';
 import { GoogleAuthStrategy } from './strategies/google-auth.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
+import { WebSocketJwtStrategy } from './strategies/websocket-jwt.strategy';
 
 @Module({
   imports: [JwtModule.register({})],
@@ -17,6 +18,7 @@ import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
     AccessTokenStrategy,
     RefreshTokenStrategy,
     GoogleAuthStrategy,
+    WebSocketJwtStrategy,
   ],
 })
 export class AuthenticationModule {}

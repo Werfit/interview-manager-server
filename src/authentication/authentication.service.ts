@@ -31,7 +31,7 @@ export class AuthenticationService {
 
   async signUp(signUpRequestDto: SignUpRequestDto): Promise<SignUpResponseDto> {
     this.logger.debug('AuthenticationService::signUp', { signUpRequestDto });
-    const existingUser = await this.userService.checkIfUserExists(
+    const existingUser = await this.userService.checkIfUserExistsByEmail(
       signUpRequestDto.email,
     );
 

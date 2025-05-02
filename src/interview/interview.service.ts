@@ -5,8 +5,8 @@ import {
 } from '@nestjs/common';
 import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { AttachmentStatus, Interview, Organization } from '@prisma/client';
-import { AttachmentService } from 'src/file-uploader/services/attachment.service';
+import { Interview, Organization } from '@prisma/client';
+import { DocumentService } from 'src/media/document/document.service';
 
 import { CandidateService } from './candidate/candidate.service';
 import { CreateInterviewRequestDto } from './dto/create-interview-request.dto';
@@ -17,7 +17,7 @@ export class InterviewService {
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
     private readonly candidateService: CandidateService,
     private readonly interviewStatusService: InterviewStatusService,
-    private readonly attachmentService: AttachmentService,
+    private readonly documentService: DocumentService,
   ) {}
 
   @Transactional()
@@ -46,9 +46,8 @@ export class InterviewService {
     }
 
     if (data.cvPath) {
-      await this.attachmentService.createPDF({
+      await this.documentService.create({
         url: data.cvPath,
-        status: AttachmentStatus.COMPLETED,
         candidateId: candidate.id,
       });
     }
@@ -126,6 +125,9 @@ export class InterviewService {
             updatedAt: true,
           },
         },
+      },
+      orderBy: {
+        date: 'desc',
       },
     });
   }
