@@ -3,16 +3,18 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 
-import { AttachmentModule } from './attachment/attachment.module';
 import { AuthenticationModule } from './authentication/authentication.module';
 import appConfiguration from './configuration/app.configuration';
 import databaseConfiguration from './configuration/database.configuration';
+import embeddingConfiguration from './configuration/embedding.configuration';
 import googleConfiguration from './configuration/google.configuration';
 import jwtConfiguration from './configuration/jwt.configuration';
-import rabbitMqConfiguration from './configuration/rabbit-mq.configuration';
 import redisConfiguration from './configuration/redis.configuration';
 import socketConfiguration from './configuration/socket.configuration';
-import { DatabaseModule } from './database/database.module';
+import transcriptionConfiguration from './configuration/transcription.configuration';
+import { DatabaseModule } from './database/database/database.module';
+import { EmbeddingDatabaseModule } from './database/embedding-database/embedding-database.module';
+import { EmbeddingModule } from './embedding/embedding.module';
 import { CandidateModule } from './interview/candidate/candidate.module';
 import { InterviewModule } from './interview/interview.module';
 import { MediaModule } from './media/media.module';
@@ -30,8 +32,9 @@ import { UserModule } from './user/user.module';
         jwtConfiguration,
         googleConfiguration,
         redisConfiguration,
-        rabbitMqConfiguration,
         socketConfiguration,
+        transcriptionConfiguration,
+        embeddingConfiguration,
       ],
       validate,
     }),
@@ -50,8 +53,9 @@ import { UserModule } from './user/user.module';
     OrganizationModule,
     InterviewModule,
     CandidateModule,
-    AttachmentModule,
     MediaModule,
+    EmbeddingDatabaseModule,
+    EmbeddingModule,
   ],
   controllers: [],
   providers: [],

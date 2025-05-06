@@ -1,14 +1,12 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
-import { AttachmentModule } from 'src/attachment/attachment.module';
 
 import { AUDIO_QUEUE_NAME } from './audio.constants';
-import { AudioProcessor } from './audio.processor';
 import { AudioService } from './audio.service';
+import { AudioProcessor } from './processors/audio.processor';
 
 @Module({
   imports: [
-    AttachmentModule,
     BullModule.registerQueue({
       name: AUDIO_QUEUE_NAME,
     }),

@@ -13,6 +13,8 @@ export class EnvironmentVariables {
 
   @IsString()
   LLM_ORIGIN: string;
+
+  // Postgres
   @IsString()
   DATABASE_URL: string;
 
@@ -28,6 +30,7 @@ export class EnvironmentVariables {
   @IsEnum(['development', 'production', 'test'])
   APP_ENV: 'development' | 'production' | 'test';
 
+  // JWT
   @IsString()
   JWT_SECRET: string;
 
@@ -40,6 +43,7 @@ export class EnvironmentVariables {
   @IsString()
   JWT_REFRESH_EXPIRATION_TIME: string;
 
+  // Google
   @IsString()
   GOOGLE_CLIENT_ID: string;
 
@@ -52,23 +56,27 @@ export class EnvironmentVariables {
   @IsString()
   GOOGLE_FRONTEND_REDIRECT_URI: string;
 
+  // Redis
   @IsString()
   REDIS_URL: string;
 
+  // Whisper
   @IsString()
-  RABBIT_MQ_HOST: string;
-
-  @IsNumber()
-  RABBIT_MQ_PORT: number;
+  TRANSCRIPTION_URL: string;
 
   @IsString()
-  RABBIT_MQ_USER: string;
+  TRANSCRIPTION_MODEL: string;
+
+  // Chroma
+  @IsString()
+  CHROMA_DB_URL: string;
 
   @IsString()
-  RABBIT_MQ_PASSWORD: string;
+  CHROMA_DB_COLLECTION: string;
 
+  // Embedding
   @IsString()
-  RABBIT_MQ_QUEUE: string;
+  EMBEDDING_MODEL: string;
 }
 
 export function validate(config: Record<string, unknown>) {

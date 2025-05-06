@@ -8,7 +8,6 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
-import { Message } from '@prisma/client';
 import { Socket } from 'socket.io';
 import { WebSocketJwtGuard } from 'src/authentication/guards/websocket-jwt.guard';
 import { SocketUser } from 'src/shared/decorators/socket-user.decorator';
@@ -43,11 +42,10 @@ export class ChatGateway extends BaseGateway {
     @ConnectedSocket() client: Socket,
     @SocketUser() _user: JwtPayload,
     @MessageBody() payload: SendNewMessageDto,
-  ): Promise<
-    Pick<Message, 'id'> & {
-      status: 'pending' | 'success' | 'error';
-    }
-  > {
+  ): Promise<{
+    id: string;
+    status: 'pending' | 'success' | 'error';
+  }> {
     const response = await httpHelper.stream(
       this.configService.getOrThrow<string>('app.llmOrigin'),
       {

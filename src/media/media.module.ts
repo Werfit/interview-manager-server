@@ -1,20 +1,18 @@
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { AttachmentModule } from 'src/attachment/attachment.module';
 import { fileManager } from 'src/shared/helpers/file-manager.helper';
 
 import { AudioModule } from './audio/audio.module';
 import { DocumentModule } from './document/document.module';
-import { ThumbnailModule } from './thumbnail/thumbnail.module';
+import { ImageModule } from './image/image.module';
 import { VideoModule } from './video/video.module';
 
 @Module({
   imports: [
     VideoModule,
-    ThumbnailModule,
-    AttachmentModule,
     AudioModule,
     DocumentModule,
+    ImageModule,
     ServeStaticModule.forRoot({
       rootPath: fileManager.uploadPath,
       serveRoot: '/uploads',
@@ -24,6 +22,6 @@ import { VideoModule } from './video/video.module';
       },
     }),
   ],
-  exports: [VideoModule, ThumbnailModule, AudioModule, DocumentModule],
+  exports: [VideoModule, AudioModule, DocumentModule, ImageModule],
 })
 export class MediaModule {}

@@ -2,17 +2,15 @@ import { rm } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import { basename } from 'node:path';
 
-import { InjectQueue } from '@nestjs/bullmq';
 import {
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Transactional } from '@nestjs-cls/transactional';
+import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { AttachmentStatus, AttachmentType } from '@prisma/client';
-import { Queue } from 'bullmq';
-import { AttachmentService } from 'src/attachment/attachment.service';
 import { fileManager } from 'src/shared/helpers/file-manager.helper';
 import { tryCatch } from 'src/shared/utilities/try-catch/try-catch.utility';
 
@@ -22,37 +20,30 @@ import { CreateVideoDto } from './dto/create-video.dto';
 import { DeleteVideoDto } from './dto/delete-video.dto';
 import { FinalizeVideoDto } from './dto/finalize-video.dto';
 import { FindVideoDto } from './dto/find-video.dto';
-import { StartConversionToMp4Dto } from './dto/start-conversion.dto';
 import { VerifyVideoExistenceDto } from './dto/verify-video-existence.dto';
-import { VIDEO_QUEUE_NAME } from './video.constants';
-import { VideoJobData } from './video.processor';
 
 @Injectable()
 export class VideoService {
   private readonly logger = new Logger(VideoService.name);
   constructor(
-    private readonly attachmentService: AttachmentService,
-    @InjectQueue(VIDEO_QUEUE_NAME)
-    private readonly videoQueue: Queue<VideoJobData>,
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
   ) {}
 
   async create(data: CreateVideoDto) {
     this.logger.log('VideoService::create', data);
 
-    return this.attachmentService.create({
-      type: AttachmentType.VIDEO,
-      create: {
+    return this.txHost.tx.attachment.create({
+      data: {
+        type: AttachmentType.VIDEO,
         url: data.url,
-        interviewId: data.interviewId,
       },
     });
   }
 
   async finalize(data: FinalizeVideoDto) {
-    return this.attachmentService.update({
-      id: data.videoId,
-      type: AttachmentType.VIDEO,
-      update: {
+    return this.txHost.tx.attachment.update({
+      where: { id: data.videoId, type: AttachmentType.VIDEO },
+      data: {
         url: data.url,
         status: AttachmentStatus.COMPLETED,
       },
@@ -60,9 +51,8 @@ export class VideoService {
   }
 
   async exists(data: VerifyVideoExistenceDto) {
-    const attachment = await this.attachmentService.find({
-      where: { id: data.id },
-      type: AttachmentType.VIDEO,
+    const attachment = await this.txHost.tx.attachment.findUnique({
+      where: { id: data.id, type: AttachmentType.VIDEO },
     });
 
     if (!attachment) {
@@ -80,26 +70,16 @@ export class VideoService {
     return attachment;
   }
 
-  async startConversionToMp4(data: StartConversionToMp4Dto) {
-    return this.videoQueue.add(VIDEO_QUEUE_NAME, {
-      videoUrl: data.videoUrl,
-      videoId: data.metadata.videoId,
-      interviewId: data.metadata.interviewId,
-    });
-  }
-
   async find(data: FindVideoDto) {
-    return this.attachmentService.find({
-      where: { id: data.id },
-      type: AttachmentType.VIDEO,
+    return this.txHost.tx.attachment.findUnique({
+      where: { id: data.id, type: AttachmentType.VIDEO },
     });
   }
 
   @Transactional()
   async delete(data: DeleteVideoDto) {
-    const attachment = await this.attachmentService.find({
-      where: { id: data.id },
-      type: AttachmentType.VIDEO,
+    const attachment = await this.txHost.tx.attachment.findUnique({
+      where: { id: data.id, type: AttachmentType.VIDEO },
     });
 
     if (!attachment) {
@@ -118,7 +98,9 @@ export class VideoService {
       url: attachment.url,
     });
     await rm(thumbnailPath, { force: true });
-    await this.attachmentService.delete(data.id);
+    await this.txHost.tx.attachment.delete({
+      where: { id: data.id, type: AttachmentType.VIDEO },
+    });
   }
 
   /**

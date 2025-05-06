@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   Post,
   Query,
@@ -16,7 +15,6 @@ import {
   OrganizationUser,
   UserOrganizationGuard,
 } from 'src/authentication/guards/user-organization.guard';
-import { AudioService } from 'src/media/audio/audio.service';
 import { User } from 'src/shared/decorators/user.decorator';
 import { FileChunksInterceptor } from 'src/shared/interceptors/file-chunks.interceptor';
 
@@ -27,10 +25,7 @@ import { RecordingService } from './recording.service';
 @Controller('interviews/recordings')
 @UseGuards(AccessTokenGuard, UserOrganizationGuard)
 export class RecordingController {
-  constructor(
-    private readonly recordingService: RecordingService,
-    private readonly audioService: AudioService,
-  ) {}
+  constructor(private readonly recordingService: RecordingService) {}
 
   @Post('upload-chunk')
   @UseInterceptors(FileChunksInterceptor('chunk'))
@@ -55,27 +50,32 @@ export class RecordingController {
     });
   }
 
+  @Get(':id')
+  async getRecording(@Param('id') id: string) {
+    return this.recordingService.getRecording({ id });
+  }
+
   @Delete(':id')
   async deleteRecording(@Param('id') id: string) {
     return this.recordingService.deleteRecording(id);
   }
 
-  @Post(':id/generate-transcription')
-  async generateTranscription(@Param('id') id: string) {
-    const recording = await this.recordingService.getRecording({ id });
+  // @Post(':id/generate-transcription')
+  // async generateTranscription(@Param('id') id: string) {
+  //   const recording = await this.recordingService.getRecording({ id });
 
-    if (!recording || !recording.interviewId) {
-      throw new NotFoundException('Recording not found');
-    }
+  //   if (!recording || !recording.interviewId) {
+  //     throw new NotFoundException('Recording not found');
+  //   }
 
-    await this.audioService.createFromVideo({
-      videoUrl: recording.url,
-      metadata: {
-        videoId: recording.id,
-        interviewId: recording.interviewId,
-      },
-    });
+  //   await this.audioService.createFromVideo({
+  //     videoUrl: recording.url,
+  //     metadata: {
+  //       videoId: recording.id,
+  //       interviewId: recording.interviewId,
+  //     },
+  //   });
 
-    return { message: 'Transcription generation started' };
-  }
+  //   return { message: 'Transcription generation started' };
+  // }
 }

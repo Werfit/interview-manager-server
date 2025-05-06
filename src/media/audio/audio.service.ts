@@ -2,18 +2,22 @@ import { rm } from 'node:fs/promises';
 
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
+import { TransactionHost } from '@nestjs-cls/transactional';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { AttachmentType } from '@prisma/client';
 import { Queue } from 'bullmq';
 import { fileManager } from 'src/shared/helpers/file-manager.helper';
 
 import { AUDIO_QUEUE_NAME } from './audio.constants';
-import { AudioJobData } from './audio.processor';
 import { CleanupAudioDto } from './dto/cleanup-audio.dto';
 import { CreateAudioFromVideoDto } from './dto/create-audio-from-video.dto';
+import { AudioJobData } from './processors/audio.processor';
 
 @Injectable()
 export class AudioService {
   private readonly logger = new Logger(AudioService.name);
   constructor(
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
     @InjectQueue(AUDIO_QUEUE_NAME)
     private readonly audioQueue: Queue<AudioJobData>,
   ) {}
@@ -32,10 +36,28 @@ export class AudioService {
   async createFromVideo(data: CreateAudioFromVideoDto) {
     this.logger.log('AudioService::createFromVideo', data);
 
+    if (data.audioId) {
+      const audioExists = await this.txHost.tx.attachment.findUnique({
+        where: { id: data.audioId, type: AttachmentType.AUDIO },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!audioExists) {
+        this.logger.error(
+          `AudioService::createFromVideo - Audio with id ${data.audioId} does not exist`,
+        );
+        return;
+      }
+
+      return;
+    }
+
     return this.audioQueue.add(AUDIO_QUEUE_NAME, {
       videoUrl: data.videoUrl,
       videoId: data.metadata.videoId,
-      interviewId: data.metadata.interviewId,
+      recordingId: data.metadata.recordingId,
     });
   }
 }

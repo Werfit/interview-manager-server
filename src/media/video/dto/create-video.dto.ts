@@ -4,8 +4,4 @@ export class CreateVideoDto {
   @IsNotEmpty()
   @IsString()
   url: string;
-
-  @IsNotEmpty()
-  @IsString()
-  interviewId: string;
 }

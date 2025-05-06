@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsObject } from 'class-validator';
+import { IsNotEmpty, IsObject, IsOptional } from 'class-validator';
 import { IsString } from 'class-validator';
 
 export class CreateAudioFromVideoMetadataDto {
@@ -8,10 +8,15 @@ export class CreateAudioFromVideoMetadataDto {
 
   @IsNotEmpty()
   @IsString()
-  interviewId: string;
+  recordingId: string;
 }
 
 export class CreateAudioFromVideoDto {
+  @IsNotEmpty()
+  @IsString()
+  @IsOptional()
+  audioId?: string;
+
   @IsNotEmpty()
   @IsString()
   videoUrl: string;
