@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "outDir": "../../dist/apps/assistant"
+  },
+  "include": [
+    "src/**/*",
+    "../../shared/utilities",
+    "../../shared/utilities/try-catch"
+  ],
+  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+}
