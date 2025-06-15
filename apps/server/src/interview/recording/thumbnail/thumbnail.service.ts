@@ -1,8 +1,8 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
-import { AttachmentStatus } from '@prisma/client';
-import { Queue } from 'bullmq';
+import { Attachment, AttachmentStatus } from '@prisma/client';
 import { ImageService } from 'apps/server/media/image/image.service';
+import { Queue } from 'bullmq';
 
 import { CreateThumbnailDto } from './dto/create-thumbnail.dto';
 import { FinalizeThumbnailDto } from './dto/finalize-thumbnail.dto';
@@ -25,12 +25,29 @@ export class ThumbnailService {
     });
   }
 
-  async finalizeThumbnail(data: FinalizeThumbnailDto) {
-    return this.imageService.update({
-      id: data.thumbnailId,
-      url: data.attachmentUrl,
-      status: AttachmentStatus.COMPLETED,
-    });
+  async finalizeThumbnail(data: FinalizeThumbnailDto): Promise<
+    Attachment & {
+      interviewRecordingThumbnail?: {
+        id: string;
+        interviewId: string;
+      } | null;
+    }
+  > {
+    return this.imageService.update(
+      {
+        id: data.thumbnailId,
+        url: data.attachmentUrl,
+        status: AttachmentStatus.COMPLETED,
+      },
+      {
+        interviewRecordingThumbnail: {
+          select: {
+            interviewId: true,
+            id: true,
+          },
+        },
+      },
+    );
   }
 
   async startThumbnailGeneration(data: StartThumbnailGenerationDto) {

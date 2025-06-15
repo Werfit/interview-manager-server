@@ -2,8 +2,8 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
-import { EmbeddingModule } from 'libs/embedding';
 
+import { AnalyzerModule } from './analyzer/analyzer.module';
 import { AuthenticationModule } from './authentication/authentication.module';
 import appConfiguration from './configuration/app.configuration';
 import databaseConfiguration from './configuration/database.configuration';
@@ -17,6 +17,7 @@ import { DatabaseModule } from './database/database.module';
 import { CandidateModule } from './interview/candidate/candidate.module';
 import { InterviewModule } from './interview/interview.module';
 import { MediaModule } from './media/media.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { OrganizationModule } from './organization/organization.module';
 import { validate } from './shared/utilities/environment/environment-validator.utility';
 import { UserModule } from './user/user.module';
@@ -46,6 +47,7 @@ import { UserModule } from './user/user.module';
         },
       }),
     }),
+
     CqrsModule.forRoot(),
     UserModule,
     DatabaseModule,
@@ -54,7 +56,8 @@ import { UserModule } from './user/user.module';
     InterviewModule,
     CandidateModule,
     MediaModule,
-    EmbeddingModule,
+    NotificationsModule,
+    AnalyzerModule,
   ],
   controllers: [],
   providers: [],

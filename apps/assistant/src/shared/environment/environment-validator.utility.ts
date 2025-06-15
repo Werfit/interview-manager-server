@@ -1,5 +1,6 @@
+import { LLM_PROVIDER, LLMProvider } from '@app/llm/llm.types';
 import { plainToInstance } from 'class-transformer';
-import { IsNumber, IsString, validateSync } from 'class-validator';
+import { IsEnum, IsNumber, IsString, validateSync } from 'class-validator';
 
 export class EnvironmentVariables {
   @IsNumber()
@@ -8,12 +9,15 @@ export class EnvironmentVariables {
   @IsString()
   CORS_ORIGIN: string;
 
-  // LLM
+  // Assistant
   @IsString()
-  OLLAMA_MODEL: string;
+  ASSISTANT_MODEL: string;
 
   @IsString()
-  OLLAMA_URL: string;
+  ASSISTANT_URL: string;
+
+  @IsEnum(LLM_PROVIDER)
+  ASSISTANT_PROVIDER: LLMProvider;
 
   // Chroma
   @IsString()
@@ -26,6 +30,9 @@ export class EnvironmentVariables {
 
   @IsString()
   EMBEDDING_URL: string;
+
+  @IsEnum(LLM_PROVIDER)
+  EMBEDDING_PROVIDER: LLMProvider;
 }
 
 export function validate(config: Record<string, unknown>) {

@@ -41,7 +41,7 @@ export class RecordingTranscriptionProcessor extends WorkerHost {
       await this.embeddingDatabaseService.addEmbeddings({
         ids: chunks.map((_, index) => `${recordingId}-${index}`),
         documents: chunks.map((chunk) => chunk.chunk),
-        embeddings: embedding,
+        embeddings: [embedding],
         metadatas: chunks.map((chunk) => ({
           interviewId,
           start: chunk.start,

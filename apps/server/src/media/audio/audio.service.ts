@@ -5,8 +5,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { AttachmentType } from '@prisma/client';
-import { Queue } from 'bullmq';
 import { fileManager } from 'apps/server/shared/helpers/file-manager.helper';
+import { Queue } from 'bullmq';
 
 import { AUDIO_QUEUE_NAME } from './audio.constants';
 import { CleanupAudioDto } from './dto/cleanup-audio.dto';

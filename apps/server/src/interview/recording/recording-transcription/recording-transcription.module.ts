@@ -14,9 +14,15 @@ import { RecordingTranscriptionService } from './recording-transcription.service
 
 @Module({
   imports: [
+    EmbeddingModule.forRootAsync((configService) => ({
+      model: configService.getOrThrow('embedding.model'),
+      connectionOptions: {
+        provider: configService.getOrThrow('embedding.provider'),
+        url: configService.getOrThrow('embedding.url'),
+      },
+    })),
     MediaModule,
     TranscriptionModule,
-    EmbeddingModule,
     EmbeddingDatabaseModule,
     BullModule.registerQueue({
       name: TRANSCRIPTION_QUEUE_NAME,

@@ -25,7 +25,7 @@
       "entryFile": "index",
       "sourceRoot": "libs/embedding/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/embedding/tsconfig.lib.json"
+        "tsConfigPath": "libs/embedding/tsconfig.json"
       }
     },
     "embedding-database": {
@@ -34,7 +34,16 @@
       "entryFile": "index",
       "sourceRoot": "libs/embedding-database/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/embedding-database/tsconfig.lib.json"
+        "tsConfigPath": "libs/embedding-database/tsconfig.json"
+      }
+    },
+    "llm": {
+      "type": "library",
+      "root": "libs/llm",
+      "entryFile": "index",
+      "sourceRoot": "libs/llm/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/llm/tsconfig.json"
       }
     },
     "server": {

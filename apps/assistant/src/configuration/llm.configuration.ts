@@ -1,6 +1,9 @@
 import { registerAs } from '@nestjs/config';
 
 export default registerAs('llm', () => ({
-  model: process.env.OLLAMA_MODEL,
-  url: process.env.OLLAMA_URL,
+  assistant: {
+    model: process.env.ASSISTANT_MODEL,
+    url: process.env.ASSISTANT_URL,
+    provider: process.env.ASSISTANT_PROVIDER,
+  },
 }));

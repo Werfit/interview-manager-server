@@ -9,7 +9,6 @@ import {
 import { EmbeddingService } from 'libs/embedding/embedding.service';
 import { EmbeddingDatabaseService } from 'libs/embedding-database';
 import { from, Observable } from 'rxjs';
-import { map, mergeMap } from 'rxjs/operators';
 
 import { AskDto } from './dto/ask.dto';
 import { InterviewAssistantService } from './interview-assistant.service';
@@ -26,12 +25,8 @@ export class InterviewAssistantController {
 
   @Post('ask')
   @Sse()
-  ask(@Body() body: AskDto): Observable<MessageEvent> {
+  async ask(@Body() body: AskDto): Promise<Observable<MessageEvent>> {
     this.logger.log(`InterviewAssistantController::ask:${body.userInput}`);
-    return from(this.processAsk(body)).pipe(mergeMap((obs) => obs));
-  }
-
-  private async processAsk(body: AskDto): Promise<Observable<MessageEvent>> {
     const embedding = await this.embeddingService.embedText([body.userInput]);
 
     const relevantDocuments = await this.databaseService.queryEmbeddings({
@@ -61,19 +56,25 @@ export class InterviewAssistantController {
       )
       .join('\n');
 
-    console.log(context);
-    const response = await this.interviewAssistantService.ask({
-      content: context,
-      question: body.userInput,
-    });
+    return new Observable<MessageEvent>((subscriber) => {
+      const run = async () => {
+        try {
+          const { textStream } = this.interviewAssistantService.ask({
+            content: context,
+            question: body.userInput,
+          });
 
-    return from(response).pipe(
-      map(
-        (chunk) =>
-          ({
-            data: JSON.stringify({ message: chunk.response }),
-          }) satisfies MessageEvent,
-      ),
-    );
+          for await (const chunk of textStream) {
+            subscriber.next({ data: chunk });
+          }
+
+          subscriber.complete();
+        } catch (error) {
+          subscriber.error(error);
+        }
+      };
+
+      run();
+    });
   }
 }

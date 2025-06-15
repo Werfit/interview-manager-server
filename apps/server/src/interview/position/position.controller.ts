@@ -26,14 +26,11 @@ export class PositionController {
 
   @Get('list')
   async getPositions(@User() user: OrganizationUser) {
-    console.log('get positions', user);
     const organizationId = user.organizationId;
-    console.log('get positions', organizationId);
     const result = await this.positionService.getPositions({
       organizationId,
     });
 
-    console.log('get positions', result);
     return result;
   }
 

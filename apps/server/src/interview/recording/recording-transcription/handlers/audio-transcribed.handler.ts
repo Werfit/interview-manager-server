@@ -22,10 +22,11 @@ export class AudioTranscribedHandler
   ) {}
 
   async handle(event: AudioTranscribedEvent) {
-    console.log(
+    this.logger.log(
       'AudioTranscribedHandler::handle',
       event.metadata.transcriptionId,
     );
+
     const transcription =
       await this.recordingTranscriptionService.updateTranscription(
         event.metadata.transcriptionId,
@@ -42,7 +43,6 @@ export class AudioTranscribedHandler
 
       return;
     }
-    // maybe need to cleanup audio file
 
     return this.transcriptionQueue.add(TRANSCRIPTION_QUEUE_NAME, {
       segments: event.metadata.segments,

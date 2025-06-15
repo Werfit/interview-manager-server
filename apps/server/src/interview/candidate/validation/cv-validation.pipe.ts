@@ -10,7 +10,10 @@ export class CVValidationPipe extends ParseFilePipe {
     super({
       validators: [
         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }),
-        new FileTypeValidator({ fileType: 'application/pdf' }),
+        new FileTypeValidator({
+          fileType: /^application\/(pdf|x-pdf)$/,
+          skipMagicNumbersValidation: true,
+        }),
       ],
       ...options,
     });

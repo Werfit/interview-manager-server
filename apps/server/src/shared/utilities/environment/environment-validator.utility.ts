@@ -1,3 +1,4 @@
+import { LLM_PROVIDER, LLMProvider } from '@app/llm/llm.types';
 import { plainToInstance } from 'class-transformer';
 import { IsEnum, IsNumber, IsString, validateSync } from 'class-validator';
 
@@ -13,6 +14,9 @@ export class EnvironmentVariables {
 
   @IsString()
   LLM_ORIGIN: string;
+
+  @IsString()
+  ANALYZER_ORIGIN: string;
 
   // Postgres
   @IsString()
@@ -80,6 +84,9 @@ export class EnvironmentVariables {
 
   @IsString()
   EMBEDDING_URL: string;
+
+  @IsEnum(LLM_PROVIDER)
+  EMBEDDING_PROVIDER: LLMProvider;
 }
 
 export function validate(config: Record<string, unknown>) {

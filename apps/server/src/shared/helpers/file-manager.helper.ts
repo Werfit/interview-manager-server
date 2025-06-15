@@ -8,9 +8,13 @@ import {
 } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 
+import { Logger } from '@nestjs/common';
+import * as pdf from 'pdf-parse';
+
 import { tryCatch } from '../../../../../shared/utilities/try-catch/try-catch.utility';
 
 export class FileManager {
+  private readonly logger = new Logger(FileManager.name);
   readonly uploadPath = join(process.cwd(), 'uploads');
   readonly thumbnailPath = join(this.uploadPath, 'thumbnails');
   readonly pdfPath = join(this.uploadPath, 'pdf');
@@ -84,6 +88,21 @@ export class FileManager {
 
   getAudioFilename(sessionId: string) {
     return `${sessionId}.aac`;
+  }
+
+  async readPDFFile(filepath: string) {
+    const [success, data] = await tryCatch(async () => {
+      const file = await readFile(filepath);
+      const data = await pdf(file);
+      return data.text;
+    });
+
+    if (!success) {
+      this.logger.error(data);
+      return null;
+    }
+
+    return data;
   }
 
   async fileExists(filepath: string) {

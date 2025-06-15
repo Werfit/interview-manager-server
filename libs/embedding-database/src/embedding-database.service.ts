@@ -3,6 +3,7 @@ import {
   AddRecordsParams,
   ChromaClient,
   Collection,
+  DeleteParams,
   IncludeEnum,
   QueryRecordsParams,
 } from 'chromadb';
@@ -75,6 +76,25 @@ export class EmbeddingDatabaseService {
 
     const [success, data] = await tryCatch(async () => {
       const result = await collection.query(queryParameters);
+      this.logger.debug('Query result:', result);
+      return result;
+    });
+
+    if (!success) {
+      this.logger.error('Failed to query embeddings:', data);
+      throw data;
+    }
+
+    return data;
+  }
+
+  async deleteEmbeddings(queryParameters: DeleteParams) {
+    const collection = await this.getOrCreateCollection();
+
+    this.logger.log(`ChromaService::deleteEmbeddings`);
+
+    const [success, data] = await tryCatch(async () => {
+      const result = await collection.delete(queryParameters);
       this.logger.debug('Query result:', result);
       return result;
     });

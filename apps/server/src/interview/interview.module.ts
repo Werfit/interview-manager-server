@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MediaModule } from 'apps/server/media/media.module';
 
+import { AnalyzerModule } from '../analyzer/analyzer.module';
 import { CandidateModule } from './candidate/candidate.module';
 import { ChatModule } from './chat/chat.module';
 import { InterviewController } from './interview.controller';
@@ -17,6 +18,7 @@ import { RecordingModule } from './recording/recording.module';
     RecordingModule,
     ChatModule,
     MediaModule,
+    AnalyzerModule,
   ],
   controllers: [InterviewController],
   providers: [InterviewService],

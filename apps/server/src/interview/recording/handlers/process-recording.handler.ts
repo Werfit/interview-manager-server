@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bullmq';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Queue } from 'bullmq';
 import { ThumbnailService } from 'apps/server/interview/recording/thumbnail/thumbnail.service';
+import { Queue } from 'bullmq';
 
 import { ProcessRecordingCommand } from '../commands/process-recording.command';
 import { RECORDING_QUEUE_NAME } from '../recording.constants';

@@ -18,14 +18,37 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "apps/assistant/*": ["apps/assistant/src/*"],
-      "apps/server/*": ["apps/server/src/*"],
-      "libs/embedding": ["libs/embedding/src"],
-      "libs/embedding-database": ["libs/embedding-database/src/index.ts"],
-      "libs/embedding-database/*": ["libs/embedding-database/src/*"],
-      "libs/embedding/*": ["libs/embedding/src/*"],
-      "utilities/*": ["shared/utilities/*"]
+      "@app/llm": [
+        "libs/llm/src"
+      ],
+      "@app/llm/*": [
+        "libs/llm/src/*"
+      ],
+      "apps/assistant/*": [
+        "apps/assistant/src/*"
+      ],
+      "apps/server/*": [
+        "apps/server/src/*"
+      ],
+      "libs/embedding": [
+        "libs/embedding/src"
+      ],
+      "libs/embedding-database": [
+        "libs/embedding-database/src/index.ts"
+      ],
+      "libs/embedding-database/*": [
+        "libs/embedding-database/src/*"
+      ],
+      "libs/embedding/*": [
+        "libs/embedding/src/*"
+      ],
+      "utilities/*": [
+        "shared/utilities/*"
+      ]
     }
   },
-  "include": ["apps/**/src/**/*.ts", "apps/**/src/**/*.d.ts"]
+  "include": [
+    "apps/**/src/**/*.ts",
+    "apps/**/src/**/*.d.ts"
+  ]
 }

@@ -18,7 +18,6 @@ export class DocumentService {
       data: {
         type: AttachmentType.PDF,
         url: data.url,
-        candidateId: data.candidateId,
         status: AttachmentStatus.COMPLETED,
       },
     });
@@ -37,7 +36,7 @@ export class DocumentService {
     await Promise.all([
       rm(attachment.url, { force: true }),
       this.txHost.tx.attachment.delete({
-        where: { id, type: AttachmentType.PDF },
+        where: { id: attachment.id },
       }),
     ]);
   }

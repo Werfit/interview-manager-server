@@ -3,7 +3,7 @@ import { rm } from 'node:fs/promises';
 import { Injectable } from '@nestjs/common';
 import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { AttachmentType } from '@prisma/client';
+import { AttachmentType, Prisma } from '@prisma/client';
 
 import { CreateImageDto } from './dto/create-image.dto';
 import { DeleteImageDto } from './dto/delete-image.dto';
@@ -25,15 +25,17 @@ export class ImageService {
     });
   }
 
-  async update(data: UpdateImageDto) {
+  async update(data: UpdateImageDto, include?: Prisma.AttachmentInclude) {
     return this.txHost.tx.attachment.update({
       where: { id: data.id, type: AttachmentType.IMAGE },
       data: {
         url: data.url,
         status: data.status,
       },
+      include,
     });
   }
+
   @Transactional()
   async delete(data: DeleteImageDto) {
     const attachment = await this.txHost.tx.attachment.findUnique({

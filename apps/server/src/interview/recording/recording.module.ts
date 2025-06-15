@@ -1,5 +1,6 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
+import { NotificationsModule } from 'apps/server/notifications/notifications.module';
 
 import { MediaModule } from '../../media/media.module';
 import { ProcessRecordingHandler } from './handlers/process-recording.handler';
@@ -19,6 +20,7 @@ import { ThumbnailModule } from './thumbnail/thumbnail.module';
     MediaModule,
     RecordingTranscriptionModule,
     ThumbnailModule,
+    NotificationsModule,
   ],
   providers: [
     RecordingService,

@@ -6,9 +6,9 @@ import {
 import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { Interview, Organization } from '@prisma/client';
-import { DocumentService } from 'apps/server/media/document/document.service';
 
 import { CandidateService } from './candidate/candidate.service';
+import { CvService } from './candidate/cv/cv.service';
 import { CreateInterviewRequestDto } from './dto/create-interview-request.dto';
 import { InterviewStatusService } from './interview-status/interview-status.service';
 @Injectable()
@@ -17,7 +17,7 @@ export class InterviewService {
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
     private readonly candidateService: CandidateService,
     private readonly interviewStatusService: InterviewStatusService,
-    private readonly documentService: DocumentService,
+    private readonly cvService: CvService,
   ) {}
 
   @Transactional()
@@ -46,7 +46,7 @@ export class InterviewService {
     }
 
     if (data.cvPath) {
-      await this.documentService.create({
+      await this.cvService.uploadCv({
         url: data.cvPath,
         candidateId: candidate.id,
       });
@@ -79,15 +79,7 @@ export class InterviewService {
             email: true,
           },
         },
-        candidate: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            cv: true,
-          },
-        },
+
         status: true,
         position: true,
       },

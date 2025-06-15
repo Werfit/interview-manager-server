@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { AttachmentStatus, AttachmentType } from '@prisma/client';
+import { AttachmentStatus, AttachmentType, Prisma } from '@prisma/client';
 import { fileManager } from 'apps/server/shared/helpers/file-manager.helper';
 import { tryCatch } from 'shared/utilities/try-catch/try-catch.utility';
 
@@ -40,13 +40,14 @@ export class VideoService {
     });
   }
 
-  async finalize(data: FinalizeVideoDto) {
+  async finalize(data: FinalizeVideoDto, include?: Prisma.AttachmentInclude) {
     return this.txHost.tx.attachment.update({
       where: { id: data.videoId, type: AttachmentType.VIDEO },
       data: {
         url: data.url,
         status: AttachmentStatus.COMPLETED,
       },
+      include,
     });
   }
 

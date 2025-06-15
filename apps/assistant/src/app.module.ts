@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { EmbeddingModule } from 'libs/embedding';
 
 import appConfiguration from './configuration/app.configuration';
 import databaseConfiguration from './configuration/database.configuration';
@@ -23,7 +22,6 @@ import { validate } from './shared/environment/environment-validator.utility';
       envFilePath: ['apps/assistant/.env'],
     }),
     InterviewAssistantModule,
-    EmbeddingModule,
   ],
   controllers: [],
   providers: [],

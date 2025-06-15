@@ -146,14 +146,14 @@ model Candidate {
   id String @id @default(uuid())
 
   name  String
-  email String      @unique
+  email String  @unique
   phone String?
-  cv    Attachment?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   interviews Interview[]
+  cv         CandidateCV?
 }
 
 enum AttachmentType {
@@ -179,8 +179,7 @@ model Attachment {
 
   status AttachmentStatus @default(PENDING)
 
-  candidateId String?    @unique
-  candidate   Candidate? @relation(fields: [candidateId], references: [id])
+  cv CandidateCV?
 
   interviewRecordingId String?
   interviewRecording   InterviewRecording? @relation(name: "interview_recording_video")
@@ -225,6 +224,26 @@ model InterviewRecording {
 
   transcriptionId String?
   transcription   Transcription?
+}
+
+enum CandidateCVStatus {
+  UPLOADED
+  EMBEDDED
+}
+
+model CandidateCV {
+  id String @id @default(uuid())
+
+  status CandidateCVStatus @default(UPLOADED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  candidateId String    @unique
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+
+  attachmentId String     @unique
+  attachment   Attachment @relation(fields: [attachmentId], references: [id])
 }
 
 model Transcription {

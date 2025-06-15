@@ -21,6 +21,8 @@
     "seed": "ts-node src/database/seeds/seed.main.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^1.3.22",
+    "@ai-sdk/provider": "^1.1.3",
     "@nestjs-cls/transactional": "^2.6.1",
     "@nestjs-cls/transactional-adapter-prisma": "^1.2.19",
     "@nestjs/bullmq": "^11.0.2",
@@ -37,6 +39,7 @@
     "@nestjs/websockets": "^11.1.0",
     "@prisma/client": "6.5.0",
     "@socket.io/redis-adapter": "^8.3.0",
+    "ai": "^4.3.16",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.7",
     "axios": "^1.8.4",
@@ -53,13 +56,16 @@
     "multer": "1.4.5-lts.2",
     "nestjs-cls": "^5.4.2",
     "ollama": "^0.5.15",
+    "ollama-ai-provider": "^1.2.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
+    "pdf-parse": "^1.1.1",
     "redis": "^4.7.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "zod": "^3.25.64"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -78,6 +84,7 @@
     "@types/node": "^22.10.7",
     "@types/passport-google-oauth20": "^2.0.16",
     "@types/passport-jwt": "^4.0.1",
+    "@types/pdf-parse": "^1.1.5",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
@@ -119,6 +126,7 @@
     ],
     "moduleNameMapper": {
       "^@app/embedding-database(|/.*)$": "<rootDir>/libs/embedding-database/src/$1",
+      "^@app/llm(|/.*)$": "<rootDir>/libs/llm/src/$1",
       "^language-model/language-model(|/.*)$": "<rootDir>/libs/language-model/src/$1",
       "^libs/embedding(|/.*)$": "<rootDir>/libs/embedding/src/$1"
     }

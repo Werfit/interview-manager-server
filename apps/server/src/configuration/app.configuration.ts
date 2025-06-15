@@ -5,4 +5,5 @@ export default registerAs('app', () => ({
   env: process.env.NODE_ENV,
   cors: process.env.CORS_ORIGIN,
   llmOrigin: process.env.LLM_ORIGIN,
+  analyzerOrigin: process.env.ANALYZER_ORIGIN,
 }));

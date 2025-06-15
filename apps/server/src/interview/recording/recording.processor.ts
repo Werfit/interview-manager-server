@@ -2,9 +2,11 @@ import { basename, extname, join } from 'node:path';
 
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
-import { Job } from 'bullmq';
+import { Attachment } from '@prisma/client';
+import { NotificationsGateway } from 'apps/server/notifications/notifications.gateway';
 import { fileManager } from 'apps/server/shared/helpers/file-manager.helper';
 import { mediaProcessor } from 'apps/server/shared/helpers/media-processor.helper';
+import { Job } from 'bullmq';
 import { tryCatch } from 'shared/utilities/try-catch/try-catch.utility';
 
 import { AudioService } from '../../media/audio/audio.service';
@@ -24,6 +26,7 @@ export class RecordingProcessor extends WorkerHost {
   constructor(
     private readonly videoService: VideoService,
     private readonly audioService: AudioService,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {
     super();
   }
@@ -46,10 +49,7 @@ export class RecordingProcessor extends WorkerHost {
 
     await tryCatch(() => {
       return Promise.all([
-        this.videoService.finalize({
-          videoId: videoId,
-          url: convertedVideoPath,
-        }),
+        this.finalizeVideo(videoId, convertedVideoPath),
         this.videoService.cleanup({
           sessionId: videoId,
           url: videoUrl,
@@ -63,5 +63,38 @@ export class RecordingProcessor extends WorkerHost {
         }),
       ]);
     });
+  }
+
+  private async finalizeVideo(videoId: string, videoUrl: string) {
+    const video = (await this.videoService.finalize(
+      {
+        videoId,
+        url: videoUrl,
+      },
+      {
+        interviewRecording: {
+          select: {
+            id: true,
+            interviewId: true,
+          },
+        },
+      },
+    )) as Attachment & {
+      interviewRecording?: {
+        id: string;
+        interviewId: string;
+      } | null;
+    };
+
+    if (video.interviewRecording) {
+      this.notificationsGateway.notifyRecordingVideoStatusUpdate(
+        video.interviewRecording.id,
+        {
+          url: video.url,
+          status: video.status,
+          interviewId: video.interviewRecording.interviewId,
+        },
+      );
+    }
   }
 }

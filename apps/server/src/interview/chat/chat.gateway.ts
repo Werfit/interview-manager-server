@@ -76,19 +76,14 @@ export class ChatGateway extends BaseGateway {
         if (!dataLine) continue;
 
         const content = dataLine.slice(6);
-        try {
-          const contentPayload = JSON.parse(content) as { message: string };
 
-          if (contentPayload.message) {
-            client.emit(ChatOutgoingEvents.AssistantMessageChunk, {
-              id: uuid,
-              content: contentPayload.message,
-              interviewId: payload.interviewId,
-              createdAt: new Date(),
-            });
-          }
-        } catch {
-          this.logger.error('Error parsing content:', content);
+        if (content.length > 0) {
+          client.emit(ChatOutgoingEvents.AssistantMessageChunk, {
+            id: uuid,
+            content,
+            interviewId: payload.interviewId,
+            createdAt: new Date(),
+          });
         }
       }
     });

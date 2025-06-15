@@ -12,8 +12,6 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import axios, { AxiosResponse } from 'axios';
-import { Observable } from 'rxjs';
 import { AccessTokenGuard } from 'apps/server/authentication/guards/access-token.guard';
 import {
   OrganizationUser,
@@ -21,7 +19,9 @@ import {
 } from 'apps/server/authentication/guards/user-organization.guard';
 import { User } from 'apps/server/shared/decorators/user.decorator';
 import { UserService } from 'apps/server/user/user.service';
+import { Observable } from 'rxjs';
 
+import { AnalyzerService } from '../analyzer/analyzer.service';
 import { CVInterceptor } from './candidate/interceptors/cv.interceptor';
 import { CVValidationPipe } from './candidate/validation/cv-validation.pipe';
 import { CreateInterviewRequestDto } from './dto/create-interview-request.dto';
@@ -34,6 +34,7 @@ export class InterviewController {
   constructor(
     private readonly userService: UserService,
     private readonly interviewService: InterviewService,
+    private readonly analyzerService: AnalyzerService,
   ) {}
 
   @Get('list')
@@ -102,39 +103,6 @@ export class InterviewController {
     @Query() body: StreamAssistantRequestDto,
     @Param('id') id: string,
   ): Observable<string> {
-    return new Observable<string>((subscriber) => {
-      const response = axios.post(
-        `http://127.0.0.1:9000/api/v1/assistant`, // TODO: Add to env
-        {
-          userInput: body.content,
-          interviewId: id,
-        },
-        {
-          responseType: 'stream',
-        },
-      );
-
-      response
-        .then((response: AxiosResponse) => {
-          const stream = response.data as NodeJS.ReadableStream;
-
-          stream.on('data', (chunk: Buffer) => {
-            console.log('chunk', chunk.toString());
-            subscriber.next(chunk.toString());
-          });
-
-          stream.on('end', () => {
-            subscriber.complete();
-          });
-
-          stream.on('error', (error: Error) => {
-            console.log('error', error);
-            subscriber.error(error);
-          });
-        })
-        .catch((error) => {
-          subscriber.error(error);
-        });
-    });
+    return this.analyzerService.getAssistance(body.content, id);
   }
 }
